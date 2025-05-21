@@ -212,14 +212,23 @@
   </div>
 
   <script>
+    // Store categories globally for export
+    let currentCategories = {
+      '24-way': [],
+      '12-way': [],
+      '6-way': [],
+      '4-way': [],
+      '1-way': []
+    };
+
     // Initialize grid with default values
     function initGrid() {
       const grid = document.getElementById('inputGrid');
       const defaultValues = [
-        ' ', ' ', ' ', ' ',
-        ' ', ' ', ' ', ' ',
-        ' ', ' ', ' ', ' ',
-        ' ', ' ', ' ', ' '
+        '7', '4', '9', '5',
+        '2', '1', '6', '3',
+        '2', '8', '5', '4',
+        '6', '6', '4', '3'
       ];
       
       grid.innerHTML = '';
@@ -345,7 +354,7 @@
 
     // Display results
     function displayResults(combinations) {
-      const categories = categorize(combinations);
+      currentCategories = categorize(combinations);
       const output = document.getElementById('output');
       output.innerHTML = '';
       
@@ -356,7 +365,7 @@
       output.appendChild(totalDiv);
       
       // Display each category
-      for (const [category, numbers] of Object.entries(categories)) {
+      for (const [category, numbers] of Object.entries(currentCategories)) {
         if (numbers.length === 0) continue;
         
         const categoryDiv = document.createElement('div');
@@ -389,16 +398,37 @@
     }
 
     function exportToFile() {
-      const numbers = Array.from(document.querySelectorAll('.number')).map(n => n.textContent);
-      if (numbers.length === 0) {
+      if (currentCategories['24-way'].length === 0 && 
+          currentCategories['12-way'].length === 0 && 
+          currentCategories['6-way'].length === 0 && 
+          currentCategories['4-way'].length === 0) {
         alert('No combinations to export. Please generate combinations first.');
         return;
       }
-      const text = numbers.join('\n');
+      
+      let text = 'REX 4D BOX CHART RESULTS\n\n';
+      text += `Generated at: ${new Date().toLocaleString()}\n\n`;
+      
+      // Add each category with proper formatting
+      for (const [category, numbers] of Object.entries(currentCategories)) {
+        if (numbers.length === 0) continue;
+        
+        text += `=== ${category.toUpperCase()} (${numbers.length} numbers) ===\n`;
+        
+        // Format numbers in rows of 4
+        for (let i = 0; i < numbers.length; i += 4) {
+          const row = numbers.slice(i, i + 4);
+          text += row.join('\t') + '\n';
+        }
+        
+        text += '\n';
+      }
+      
+      // Create and download the file
       const blob = new Blob([text], {type: 'text/plain'});
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'rex_4d_combinations.txt';
+      link.download = `rex_4d_results_${new Date().toISOString().slice(0,10)}.txt`;
       link.click();
     }
 
